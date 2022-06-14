@@ -1,0 +1,19 @@
+##########################################################################################################
+build:
+  stage: build
+  script:
+    - docker-compose -f docker/docker-compose up -d
+    - sleep 30
+    - curl http://localhost:80
+    - docker-compose -f docker/docker-compose down
+############################################################################################################
+deploy:
+  stage: deploy
+  script:
+    - zip -r sym.zip *
+    - echo $SSH_KEY > id.pub
+    - scp -i id.pub sym.zip $USER@$SERVER:$DIRSITE/
+    - ssh -i id.pub $USER@$SERVER 'unzip $DIRSITE/sym.zip'
+    - ssh -i id.pub $USER@$SERVER 'docker-compose -f $DIRSITE/docker/docker-compose.yml up -d'
+  when: manual
+##########   ВСЕ ПЕРЕМЕННЫЕ ХРАНЯТСЯ В GITLAB VARIABLES #####################################################################
